@@ -16,9 +16,9 @@ type API struct {
 
 func NewService(base string) *API {
 	a := &API{}
-	a.APIName = "hello"
-	a.Mounts = map[string]*chi.Mux{}
-	a.Mounts[base] = a.Routes()
+	a.Service.APIName = "hello"
+	a.Service.Mounts = map[string]*chi.Mux{}
+	a.Service.Mounts[base] = a.Routes()
 	return a
 }
 
