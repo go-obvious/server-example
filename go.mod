@@ -4,7 +4,7 @@ go 1.23.2
 
 require (
 	github.com/go-chi/chi v4.1.2+incompatible
-	github.com/go-obvious/server v0.0.0
+	github.com/go-obvious/server v0.0.2
 	github.com/stretchr/testify v1.9.0
 )
 
@@ -13,6 +13,7 @@ require (
 	github.com/aws/aws-lambda-go v1.47.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/drivetopurchase/apigo v2.1.0+incompatible // indirect
+	github.com/go-chi/chi/v5 v5.1.0 // indirect
 	github.com/go-chi/cors v1.2.1 // indirect
 	github.com/go-chi/render v1.0.3 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
