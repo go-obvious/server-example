@@ -4,7 +4,7 @@ go 1.23.2
 
 require (
 	github.com/go-chi/chi v4.1.2+incompatible
-	github.com/go-obvious/server v0.0.3
+	github.com/go-obvious/server v0.0.1
 	github.com/stretchr/testify v1.9.0
 )
 
