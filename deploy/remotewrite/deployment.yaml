@@ -1,0 +1,76 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cirrus
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: cirrus
+  name: remote-write-receiver
+  labels:
+    app: remote-write-receiver
+spec:
+  replicas: 1 # Number of pod replicas
+  selector:
+    matchLabels:
+      app: remote-write-receiver
+  template:
+    metadata:
+      labels:
+        app: remote-write-receiver
+    spec:
+      containers:
+        - name: remote-write-receiver
+          image: ghcr.io/josephbarnett/remotewrite:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: NAMESPACE
+              value: "live"
+            # Values for accessing the localstack instance
+            - name: AWS_ACCESS_KEY_ID
+              value: "test"
+            - name: AWS_SECRET_ACCESS_KEY
+              value: "test"
+            - name: AWS_REGION
+              value: "us-east-1"
+            - name: AWS_DEFAULT_REGION
+              value: "us-east-1"
+            - name: AWS_ENDPOINT
+              value: "http://localstack.localstack.svc.cluster.local:4566"
+            # end of local stack related configuration
+            - name: ENABLE_SNOWFLAKE
+              value: "false"
+            - name: SERVER_MODE
+              value: "http"
+            - name: SERVER_DOMAIN
+              value: "api.cloudzero.com"
+            - name: SERVER_PORT
+              value: "8080"
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1024Mi"
+              cpu: "1000m"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: cirrus
+  name: remote-write-receiver
+  labels:
+    app: remote-write-receiver
+spec:
+  selector:
+    app: remote-write-receiver
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: ClusterIP

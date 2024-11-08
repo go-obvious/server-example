@@ -56,7 +56,7 @@ func TestPingServiceEndpoint(t *testing.T) {
 			t.Log(req.Method, req.URL)
 
 			resp, err := test.InvokeService(
-				service.NewService("/ping").Service,
+				service.NewPingService("/ping").Service,
 				"/ping",
 				req,
 			)

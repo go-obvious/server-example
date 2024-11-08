@@ -11,7 +11,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.36.2
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/go-obvious/env v0.0.2
-	github.com/go-obvious/server v0.1.2
+	github.com/go-obvious/server v0.1.3
 	github.com/golang/mock v1.6.0
 	github.com/stretchr/testify v1.9.0
 )
@@ -44,3 +44,7 @@ require (
 	golang.org/x/text v0.19.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+//replace github.com/go-obvious/server => ../server
+
+//replace github.com/go-obvious/gateway => ../gateway

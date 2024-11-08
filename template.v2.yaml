@@ -1,0 +1,77 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Cloudzero Fast Remote Write API
+
+Globals:
+  Function:
+    MemorySize: 128
+    Architectures: ["arm64"]
+    Handler: bootstrap
+    Runtime: provided.al2
+    Timeout: 5
+    Tracing: Active
+    Environment:
+      Variables:
+        ENABLE_SNOWFLAKE: "false"
+        SERVER_MODE: "aws-gw-lambda"
+        SERVER_DOMAIN: "api.cloudzero.com"
+        SERVER_PORT: "4444"
+        AWS_ENDPOINT: "http://localstack.localstack.svc.cluster.local:4566"
+
+Resources:
+  FastRemoteWritePostFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: app/remotewrite/
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            Path: /metrics
+            Method: POST
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - "s3:*"
+              Resource: ["*"]
+    Metadata:
+      BuildMethod: makefile
+
+  FastRemoteWriteGetFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: app/remotewrite/
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            Path: /metrics
+            Method: GET
+    Metadata:
+      BuildMethod: makefile
+
+  DataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: "cz-live-container-analysis-3e0e0d25-b482-4e61-aa52-9994b2dcd51e"
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: True
+        BlockPublicPolicy: True
+        IgnorePublicAcls: True
+        RestrictPublicBuckets: True
+
+  EventBus:
+    Type: AWS::Events::EventBus
+    Properties:
+      Name: !Ref AWS::StackName
+
+Outputs:
+  ApiUrl:
+    Description: "API Gateway endpoint URL"
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.localhost.localstack.cloud:4566/"

@@ -18,12 +18,13 @@ func main() {
 
 	// Create the data storage layer
 	ctx := context.Background()
+
 	storage := store.NewDynamoDBStore(ctx, env.MustGet("TABLE"))
 
 	// start the service
 	server.New(
 		build.Version(),
-		handlers.NewProductService("/products", storage),
+		handlers.NewProductService("/", storage),
 		handlers.NewPingService("/ping"),
 	).Run(ctx)
 }

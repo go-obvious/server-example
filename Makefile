@@ -1,6 +1,6 @@
 STACK_NAME ?= server-example
 FUNCTIONS := products products-stream
-REGION := eu-central-1
+REGION := us-east-1
 
 GO := go
 
@@ -23,53 +23,42 @@ build-%:
 		cd functions/$* && GOOS=linux GOARCH=arm64 CGO_ENABLED=0 ${GO} build -o bootstrap
 
 
-invoke: ## Invoke the GetProductsFunction
-	@sam local invoke --env-vars env-vars.json GetProductsFunction
-
-
-invoke-put: ## Invoke the PutProductFunction
-	@sam local invoke --env-vars env-vars.json --event functions/put-product/event.json PutProductFunction
-
-
-invoke-get: ## Invoke the GetProductFunction
-	@sam local invoke --env-vars env-vars.json --event functions/get-product/event.json GetProductFunction
-
-
-invoke-delete: ## Invoke the DeleteProductFunction
-	@sam local invoke --env-vars env-vars.json --event functions/delete-product/event.json DeleteProductFunction
-
-
-invoke-stream: ## Invoke the DDBStreamsFunction
-	@sam local invoke --env-vars env-vars.json --event functions/products-stream/event.json DDBStreamsFunction
-
-
 clean: ## Clean up
 	@rm $(foreach function,${FUNCTIONS}, functions/${function}/bootstrap)
 
 
-deploy-gateway-v2:
+deploy-gateway-v2: ## Deploy the API Gateway v2
 	if [ -f samconfig.toml ]; \
-		then sam deploy --stack-name ${STACK_NAME}; \
-		else sam deploy -g --stack-name ${STACK_NAME}; \
+		then samlocal deploy --stack-name ${STACK_NAME}; \
+		else samlocal deploy -g --stack-name ${STACK_NAME}; \
 	fi
 
+destroy-gateway-v2: ## Destroy the API Gateway v2
+	samlocal delete --stack-name ${STACK_NAME}
 
-tests-unit:
+
+tests-unit: ## Run the unit tests
 	@go test -v -tags=unit -bench=. -benchmem -cover ./...
 
 
-tests-integ:
-	API_URL=$$(aws cloudformation describe-stacks --stack-name $(STACK_NAME) \
-	  --region $(REGION) \
+tests-integ: ## Run the integration tests
+	API_URL=$$(awslocal cloudformation describe-stacks --stack-name $(STACK_NAME) \
+		--region $(REGION) \
 		--query 'Stacks[0].Outputs[?OutputKey==`ApiUrl`].OutputValue' \
 		--output text) go test -v -tags=integration ./...
 
 
-tests-load:
-	API_URL=$$(aws cloudformation describe-stacks --stack-name $(STACK_NAME) \
-	  --region $(REGION) \
+tests-load: ## Run the load tests
+	API_URL=$$(awslocal cloudformation describe-stacks --stack-name $(STACK_NAME) \
+		--region $(REGION) \
 		--query 'Stacks[0].Outputs[?OutputKey==`ApiUrl`].OutputValue' \
 		--output text) artillery run load-testing/load-test.yml
+
+echo: ## Output the API URL
+	awslocal cloudformation describe-stacks --stack-name $(STACK_NAME) \
+		--region $(REGION) \
+		--query 'Stacks[0].Outputs[?OutputKey==`ApiUrl`].OutputValue' \
+		--output text
 
 
 fmt: ## Run go fmt against code

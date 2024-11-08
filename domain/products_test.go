@@ -20,7 +20,7 @@ func TestGetProductNotFound(t *testing.T) {
 
 	product, err := domain.GetProduct(context.Background(), "1")
 	if err != nil {
-		t.Errorf("GetProduct returned an error: %w", err)
+		t.Errorf("GetProduct returned an error: %v", err)
 	}
 
 	if product != nil {
@@ -42,7 +42,7 @@ func TestGetExistingProduct(t *testing.T) {
 
 	product, err := domain.GetProduct(context.Background(), "iXR")
 	if err != nil {
-		t.Errorf("GetProduct returned an error: %w", err)
+		t.Errorf("GetProduct returned an error: %v", err)
 	}
 
 	if product == nil {
@@ -143,7 +143,7 @@ func TestAllProducts(t *testing.T) {
 	t.Run("with an empty store", func(t *testing.T) {
 		productRange, err := domain.AllProducts(ctx, nil)
 		if err != nil {
-			t.Errorf("Got unexpected error: %w", err)
+			t.Errorf("Got unexpected error: %v", err)
 		}
 
 		if len(productRange.Products) != 0 {
@@ -160,7 +160,7 @@ func TestAllProducts(t *testing.T) {
 
 		productRange, err := domain.AllProducts(ctx, nil)
 		if err != nil {
-			t.Errorf("Got unexpected error: %w", err)
+			t.Errorf("Got unexpected error: %v", err)
 		}
 
 		if len(productRange.Products) != 1 {

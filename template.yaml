@@ -12,12 +12,17 @@ Globals:
     Environment:
       Variables:
         TABLE: !Ref Table
+        SERVER_MODE: "aws-gateway-v2"
+        AWS_ENDPOINT_URL: "http://localstack.localstack.svc.cluster.local:4566"
+        AWS_REGION: "us-east-1"
+        AWS_ACCESS_KEY_ID: "test"
+        AWS_SECRET_ACCESS_KEY: "test"
 
 Resources:
   GetProductsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: functions/get-products/
+      CodeUri: functions/products/
       Events:
         Api:
           Type: HttpApi
@@ -36,7 +41,7 @@ Resources:
   GetProductFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: functions/get-product/
+      CodeUri: functions/products/
       Events:
         Api:
           Type: HttpApi
@@ -55,7 +60,7 @@ Resources:
   DeleteProductFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: functions/delete-product/
+      CodeUri: functions/products/
       Events:
         Api:
           Type: HttpApi
@@ -74,7 +79,7 @@ Resources:
   PutProductFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: functions/put-product/
+      CodeUri: functions/products/
       Events:
         Api:
           Type: HttpApi
@@ -90,31 +95,31 @@ Resources:
     Metadata:
       BuildMethod: makefile
 
-  DDBStreamsFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: functions/products-stream/
-      Timeout: 10
-      Events:
-        TableStream:
-          Type: DynamoDB
-          Properties:
-            BatchSize: 1000
-            FunctionResponseTypes:
-              - ReportBatchItemFailures
-            MaximumBatchingWindowInSeconds: 10
-            StartingPosition: TRIM_HORIZON
-            Stream: !GetAtt Table.StreamArn
-      Environment:
-        Variables:
-          EVENT_BUS_NAME: !Ref EventBus
-      MemorySize: 128
-      Policies:
-        - Version: "2012-10-17"
-          Statement:
-            - Effect: Allow
-              Action: events:PutEvents
-              Resource: !GetAtt EventBus.Arn
+  # DDBStreamsFunction:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     CodeUri: functions/products-stream/
+  #     Timeout: 10
+  #     Events:
+  #       TableStream:
+  #         Type: DynamoDB
+  #         Properties:
+  #           BatchSize: 1000
+  #           FunctionResponseTypes:
+  #             - ReportBatchItemFailures
+  #           MaximumBatchingWindowInSeconds: 10
+  #           StartingPosition: TRIM_HORIZON
+  #           Stream: !GetAtt Table.StreamArn
+  #     Environment:
+  #       Variables:
+  #         EVENT_BUS_NAME: !Ref EventBus
+  #     MemorySize: 128
+  #     Policies:
+  #       - Version: "2012-10-17"
+  #         Statement:
+  #           - Effect: Allow
+  #             Action: events:PutEvents
+  #             Resource: !GetAtt EventBus.Arn
 
   Table:
     Type: AWS::DynamoDB::Table
@@ -137,4 +142,4 @@ Resources:
 Outputs:
   ApiUrl:
     Description: "API Gateway endpoint URL"
-    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/"
+    Value: !Sub "http://${ServerlessHttpApi}.execute-api.localhost.localstack.cloud:4566/"

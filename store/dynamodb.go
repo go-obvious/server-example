@@ -10,7 +10,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	ddbtypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/sirupsen/logrus"
 
+	"github.com/go-obvious/env"
 	"github.com/go-obvious/server-example/types"
 )
 
@@ -27,7 +29,20 @@ func NewDynamoDBStore(ctx context.Context, tableName string) *DynamoDBStore {
 		log.Fatalf("unable to load SDK config, %v", err)
 	}
 
-	client := dynamodb.NewFromConfig(cfg)
+	client := dynamodb.NewFromConfig(cfg,
+		func(o *dynamodb.Options) {
+			if endpoint := env.GetOr("AWS_ENDPOINT_URL", ""); endpoint != "" {
+				logrus.Info("Setting DynamoDB endpoint to ", endpoint)
+				o.BaseEndpoint = aws.String(endpoint)
+			}
+		},
+		func(o *dynamodb.Options) {
+			if region := env.GetOr("AWS_REGION", ""); region != "" {
+				logrus.Info("Setting DynamoDB region to ", region)
+				o.Region = region
+			}
+		},
+	)
 
 	return &DynamoDBStore{
 		client:    client,

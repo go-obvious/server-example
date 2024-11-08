@@ -56,6 +56,8 @@ github.com/go-obvious/gateway/v2 v2.0.0-20241018125023-27fcb918b47d h1:wJCUHz++L
 github.com/go-obvious/gateway/v2 v2.0.0-20241018125023-27fcb918b47d/go.mod h1:jZzgnnq+Ym/nsWOlIL7cdHHyh2M5kPpfPWu8025v/3s=
 github.com/go-obvious/server v0.1.2 h1:kTdAiQ2seuJDx92FF/kDnzTiUGHMxTidW4EAWLbDq6A=
 github.com/go-obvious/server v0.1.2/go.mod h1:fImGyUkJaVnI48fgKOfodNnR71s25z230q2G0TBXO4I=
+github.com/go-obvious/server v0.1.3 h1:EIhVT3Q4lMi/bIukXHBb9AMwhetbC1x2pFlEEIZaNTs=
+github.com/go-obvious/server v0.1.3/go.mod h1:eFc8mABjpU5PHvK87ytlbDeVwzjkQex1Kfnwo0RT1NE=
 github.com/golang/mock v1.6.0 h1:ErTB+efbowRARo13NNdxyJji2egdxLGQhRaY+DUumQc=
 github.com/golang/mock v1.6.0/go.mod h1:p6yTPP+5HYm5mzsMV8JkE6ZKdX+/wYM6Hr+LicevLPs=
 github.com/jmespath/go-jmespath v0.4.0 h1:BEgLn5cpjn8UN1mAw4NjwDrS35OdebyEtFe+9YPoQUg=
