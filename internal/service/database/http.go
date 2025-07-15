@@ -20,10 +20,10 @@ import (
 
 // Config demonstrates the configuration registry pattern
 type Config struct {
-	DatabaseURL     string        `envconfig:"DATABASE_URL" default:"mock://localhost:5432/testdb"`
-	MaxConnections  int           `envconfig:"DATABASE_MAX_CONNECTIONS" default:"10"`
-	ConnectTimeout  time.Duration `envconfig:"DATABASE_CONNECT_TIMEOUT" default:"5s"`
-	EnableMetrics   bool          `envconfig:"DATABASE_ENABLE_METRICS" default:"true"`
+	DatabaseURL    string        `envconfig:"DATABASE_URL" default:"mock://localhost:5432/testdb"`
+	MaxConnections int           `envconfig:"DATABASE_MAX_CONNECTIONS" default:"10"`
+	ConnectTimeout time.Duration `envconfig:"DATABASE_CONNECT_TIMEOUT" default:"5s"`
+	EnableMetrics  bool          `envconfig:"DATABASE_ENABLE_METRICS" default:"true"`
 }
 
 // Load implements the Configurable interface for the configuration registry
@@ -31,16 +31,16 @@ func (c *Config) Load() error {
 	if err := envconfig.Process("", c); err != nil {
 		return fmt.Errorf("failed to load database config: %w", err)
 	}
-	
+
 	// Custom validation
 	if c.MaxConnections < 1 || c.MaxConnections > 100 {
 		return fmt.Errorf("DATABASE_MAX_CONNECTIONS must be between 1 and 100, got %d", c.MaxConnections)
 	}
-	
+
 	if c.ConnectTimeout < time.Second {
 		return fmt.Errorf("DATABASE_CONNECT_TIMEOUT must be at least 1 second, got %v", c.ConnectTimeout)
 	}
-	
+
 	return nil
 }
 
@@ -54,10 +54,10 @@ type DatabaseService struct {
 
 func NewService() *DatabaseService {
 	cfg := &Config{}
-	
+
 	// Register configuration with the global registry
 	config.Register(cfg)
-	
+
 	return &DatabaseService{
 		config:  cfg,
 		metrics: make(map[string]int),
@@ -72,7 +72,7 @@ func (d *DatabaseService) Name() string {
 // Register implements the API interface
 func (d *DatabaseService) Register(app server.Server) error {
 	router := app.Router().(*chi.Mux)
-	
+
 	// Mount database routes
 	router.Route("/api/database", func(r chi.Router) {
 		r.Get("/users", d.getUsers)
@@ -80,7 +80,7 @@ func (d *DatabaseService) Register(app server.Server) error {
 		r.Get("/health", d.healthCheck)
 		r.Get("/metrics", d.getMetrics)
 	})
-	
+
 	return nil
 }
 
@@ -91,27 +91,27 @@ func (d *DatabaseService) Start(ctx context.Context) error {
 		Int("max_connections", d.config.MaxConnections).
 		Dur("timeout", d.config.ConnectTimeout).
 		Msg("Connecting to database")
-	
+
 	// Validate config was loaded properly
 	if d.config.ConnectTimeout == 0 {
 		d.config.ConnectTimeout = 5 * time.Second
 		log.Warn().Msg("Using default connect timeout as config was not loaded properly")
 	}
-	
+
 	// Create connection with timeout
 	connectCtx, cancel := context.WithTimeout(ctx, d.config.ConnectTimeout)
 	defer cancel()
-	
+
 	connection, err := NewMockConnection(connectCtx, d.config.DatabaseURL, d.config.MaxConnections)
 	if err != nil {
 		return fmt.Errorf("failed to connect to database: %w", err)
 	}
-	
+
 	// Test connection
 	if err := connection.Ping(connectCtx); err != nil {
 		return fmt.Errorf("database ping failed: %w", err)
 	}
-	
+
 	d.connection = connection
 	log.Info().Msg("Database connection established successfully")
 	return nil
@@ -120,14 +120,14 @@ func (d *DatabaseService) Start(ctx context.Context) error {
 // Stop implements the LifecycleAPI interface
 func (d *DatabaseService) Stop(ctx context.Context) error {
 	log.Info().Msg("Shutting down database service")
-	
+
 	if d.connection != nil {
 		if err := d.connection.Close(ctx); err != nil {
 			log.Error().Err(err).Msg("Error closing database connection")
 			return err
 		}
 	}
-	
+
 	log.Info().Msg("Database service shutdown complete")
 	return nil
 }
@@ -140,7 +140,7 @@ func (d *DatabaseService) getUsers(w http.ResponseWriter, r *http.Request) {
 		render.Render(w, r, err)
 		return
 	}
-	
+
 	users, err := d.connection.GetUsers(r.Context())
 	if err != nil {
 		// Use context-aware error handling for better tracing
@@ -148,7 +148,7 @@ func (d *DatabaseService) getUsers(w http.ResponseWriter, r *http.Request) {
 		render.Render(w, r, errResp)
 		return
 	}
-	
+
 	d.incrementMetric("users_fetched")
 	render.JSON(w, r, map[string]interface{}{
 		"users": users,
@@ -162,31 +162,31 @@ func (d *DatabaseService) createUser(w http.ResponseWriter, r *http.Request) {
 		render.Render(w, r, err)
 		return
 	}
-	
+
 	var req struct {
 		Name  string `json:"name"`
 		Email string `json:"email"`
 	}
-	
+
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		errResp := request.ErrInvalidRequestWithContext(r, err)
 		render.Render(w, r, errResp)
 		return
 	}
-	
+
 	if req.Name == "" || req.Email == "" {
 		errResp := request.ErrInvalidRequestWithContext(r, fmt.Errorf("name and email are required"))
 		render.Render(w, r, errResp)
 		return
 	}
-	
+
 	user, err := d.connection.CreateUser(r.Context(), req.Name, req.Email)
 	if err != nil {
 		errResp := request.ErrInvalidRequestWithContext(r, err)
 		render.Render(w, r, errResp)
 		return
 	}
-	
+
 	d.incrementMetric("users_created")
 	render.JSON(w, r, map[string]interface{}{
 		"user":    user,
@@ -200,13 +200,13 @@ func (d *DatabaseService) healthCheck(w http.ResponseWriter, r *http.Request) {
 		render.Render(w, r, err)
 		return
 	}
-	
+
 	if err := d.connection.Ping(r.Context()); err != nil {
 		errResp := request.ErrInvalidRequestWithContext(r, err)
 		render.Render(w, r, errResp)
 		return
 	}
-	
+
 	render.JSON(w, r, map[string]interface{}{
 		"status":     "healthy",
 		"connection": "active",
@@ -220,14 +220,14 @@ func (d *DatabaseService) getMetrics(w http.ResponseWriter, r *http.Request) {
 		render.Render(w, r, err)
 		return
 	}
-	
+
 	d.mu.RLock()
 	metrics := make(map[string]int)
 	for k, v := range d.metrics {
 		metrics[k] = v
 	}
 	d.mu.RUnlock()
-	
+
 	render.JSON(w, r, map[string]interface{}{
 		"metrics": metrics,
 		"config": map[string]interface{}{
@@ -241,7 +241,7 @@ func (d *DatabaseService) incrementMetric(name string) {
 	if !d.config.EnableMetrics {
 		return
 	}
-	
+
 	d.mu.Lock()
 	d.metrics[name]++
 	d.mu.Unlock()
@@ -268,12 +268,12 @@ func NewMockConnection(ctx context.Context, url string, maxConns int) (*MockConn
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	}
-	
+
 	// Simulate connection failure for certain URLs
 	if url == "mock://fail" {
 		return nil, fmt.Errorf("connection failed")
 	}
-	
+
 	return &MockConnection{
 		url:         url,
 		maxConns:    maxConns,
@@ -303,7 +303,7 @@ func (c *MockConnection) CreateUser(ctx context.Context, name, email string) (Us
 	if !c.isConnected {
 		return User{}, fmt.Errorf("connection closed")
 	}
-	
+
 	user := User{
 		ID:    len(c.users) + 1,
 		Name:  name,

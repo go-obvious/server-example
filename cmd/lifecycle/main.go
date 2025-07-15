@@ -13,7 +13,7 @@ import (
 func main() {
 	// Example demonstrating API lifecycle management with graceful shutdown
 	// Shows how to use configuration registry and lifecycle hooks
-	
+
 	server.New(
 		&server.ServerVersion{
 			Revision: build.Rev,
@@ -21,10 +21,10 @@ func main() {
 			Time:     build.Time,
 		},
 	).WithAPIs(
-		database.NewService(),    // Service with lifecycle hooks
-		worker.NewService(),      // Background worker with lifecycle
+		database.NewService(), // Service with lifecycle hooks
+		worker.NewService(),   // Background worker with lifecycle
 	).Run(context.Background())
-	
+
 	// Lifecycle flow:
 	// 1. Configuration loaded via registry
 	// 2. database.Start() - connects to database
